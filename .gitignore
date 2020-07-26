@@ -1,0 +1,14 @@
+*.docx
+*.pptx
+*.pdf
+*.csv
+*.tsv
+*.npy
+*.pt
+*.pth
+.vscode
+.ipynb_checkpoints
+*.zip
+*.tar.xz
+*.gz
+input/
