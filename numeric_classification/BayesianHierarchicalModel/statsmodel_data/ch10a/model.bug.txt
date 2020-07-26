@@ -1,0 +1,13 @@
+model
+{
+    for (i in 1:N.data) {
+        Y[i] ~ dbin(q[i], 8)
+        logit(q[i]) <- a + r[i]
+    }
+    a ~ dnorm(0.00000E+00, 1.00000E-04)
+    for (i in 1:N.data) {
+        r[i] ~ dnorm(0.00000E+00, tau)
+    }
+    tau <- 1/(s * s)
+    s ~ dunif(0.00000E+00, 10000)
+}
