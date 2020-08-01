@@ -7,20 +7,20 @@ class Block(nn.Module):
     def __init__(self, channel_in, channel_out):
         super().__init__()
         channel = channel_out // 4
-        # 1x1 の畳み込み
+
         self.conv1 = nn.Conv2d(channel_in, channel, kernel_size=(1, 1))
         self.bn1 = nn.BatchNorm2d(channel)
         self.relu1 = nn.ReLU()
-        # 3x3 の畳み込み
+
         self.conv2 = nn.Conv2d(channel, channel, kernel_size=(3, 3), padding=1)
         self.bn2 = nn.BatchNorm2d(channel)
         self.relu2 = nn.ReLU()
-        # 1x1 の畳み込み
+
         self.conv3 = nn.Conv2d(channel, channel_out, kernel_size=(1, 1), padding=0)
         self.bn3 = nn.BatchNorm2d(channel_out)
-        # skip connection用のチャネル数調整
-        self.shortcut = self._shortcut(channel_in, channel_out)
 
+        # Adjusting channels for skip connection
+        self.shortcut = self._shortcut(channel_in, channel_out)
         self.relu3 = nn.ReLU()
 
     def forward(self, x):

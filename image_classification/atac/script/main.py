@@ -1,4 +1,5 @@
 import sys
+import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score
@@ -32,7 +33,15 @@ def test_step(x, t, model, optimizer, criterion):
     return loss, preds
 
 
-def main():
+def main(args):
+    # Reading Arguments
+    enable_atac = args.atac
+    if enable_atac:
+        print("ATAC Enabled")
+    else:
+        print("ATAC Disabled")
+    epochs = args.epoch
+    reduction_ratio = args.reduction
 
     # Data Preparation
     transform = transforms.Compose(
@@ -43,14 +52,14 @@ def main():
         root="../data/input", train=True, download=True, transform=transform
     )
     train_dataloader = torch.utils.data.DataLoader(
-        trainset, batch_size=64, shuffle=True, num_workers=4
+        trainset, batch_size=32, shuffle=True, num_workers=4
     )
 
     testset = torchvision.datasets.CIFAR10(
         root="../data/input", train=False, download=True, transform=transform
     )
     test_dataloader = torch.utils.data.DataLoader(
-        testset, batch_size=64, shuffle=False, num_workers=4
+        testset, batch_size=32, shuffle=False, num_workers=4
     )
 
     classes = (
@@ -71,11 +80,10 @@ def main():
     criterion = nn.CrossEntropyLoss()
 
     if enable_atac:
-        model = resnet50atac.ResNet50ATAC(10, r=0.25).to(device)
+        model = resnet50atac.ResNet50ATAC(10, r=reduction_ratio).to(device)
     else:
         model = resnet50.ResNet50(10).to(device)
     optimizer = optim.Adam(model.parameters(), weight_decay=0.01)
-    epochs = 10
 
     # Training Loop
     n_batch_train = len(train_dataloader)
@@ -115,4 +123,11 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-a", "--atac", action="store_true", help="Use ATAC")
+    parser.add_argument("-e", "--epoch", default=5, type=int, help="# of epoch")
+    parser.add_argument(
+        "-r", "--reduction", default=0.25, type=float, help="Reduction rate (0~1)"
+    )
+    args = parser.parse_args()
+    main(args)

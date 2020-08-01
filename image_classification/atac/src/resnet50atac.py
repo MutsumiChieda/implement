@@ -10,7 +10,7 @@ class ATAC(nn.Module):
         r (float): channel reduction ratio (0 ~ 1)
     """
 
-    def __init__(self, channel_in, r=1):
+    def __init__(self, channel_in, r):
         super().__init__()
         channel_h = int(channel_in * r)
         self.point_conv1 = nn.Conv2d(
@@ -37,7 +37,6 @@ class ATAC(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
-
         h = self.point_conv1(x)
         h = self.bn1(h)
         h = self.relu(h)
@@ -53,20 +52,21 @@ class Block(nn.Module):
     def __init__(self, channel_in, channel_out, r=1):
         super().__init__()
         channel = channel_out // 4
-        # 1x1 の畳み込み
+
         self.conv1 = nn.Conv2d(channel_in, channel, kernel_size=(1, 1))
         self.bn1 = nn.BatchNorm2d(channel)
-        self.atac1 = ATAC(channel, channel)
-        # 3x3 の畳み込み
+        self.atac1 = ATAC(channel, r)
+
         self.conv2 = nn.Conv2d(channel, channel, kernel_size=(3, 3), padding=1)
         self.bn2 = nn.BatchNorm2d(channel)
-        self.atac2 = ATAC(channel, channel)
-        # 1x1 の畳み込み
+        self.atac2 = ATAC(channel, r)
+
         self.conv3 = nn.Conv2d(channel, channel_out, kernel_size=(1, 1), padding=0)
         self.bn3 = nn.BatchNorm2d(channel_out)
-        # skip connection用のチャネル数調整
+
+        # Adjusting channels for skip connection
         self.shortcut = self._shortcut(channel_in, channel_out)
-        self.atac3 = ATAC(channel_out, channel_out)
+        self.atac3 = ATAC(channel_out, r)
 
     def forward(self, x):
         h = self.conv1(x)
@@ -100,6 +100,12 @@ class GlobalAvgPool2d(nn.Module):
 
 
 class ResNet50ATAC(nn.Module):
+    """ResNet50 but ReLU is replaced with ATAC module.
+    Args:
+        output_dim (int): # of output channels
+        r (float): channel reduction ratio (0 ~ 1)
+    """
+
     def __init__(self, output_dim, r=1):
         super().__init__()
         self.conv1 = nn.Conv2d(3, 64, kernel_size=(7, 7), stride=(2, 2), padding=3)
